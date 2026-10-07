@@ -1,0 +1,20 @@
+# secrets — never commit
+.env
+
+# local environments
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# generated output (regenerate with text_to_speech.py / package.sh)
+audio/
+uil.zip
+
+# third-party spelling lists and their extracted/derived artifacts.
+# The word lists are copyrighted compilations; supply your own copy.
+A+Spelling*.pdf
+A+Spelling*.txt
+
+# personal editor config (references local filenames)
+.vscode/
