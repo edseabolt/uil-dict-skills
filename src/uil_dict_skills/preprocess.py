@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 """Extract dictionary words from a UIL spelling-list PDF into a plain
 text word list.
 
@@ -9,7 +8,7 @@ embedded fonts. The output is one word per line, suitable for
 text_to_speech.py.
 
 Example:
-    $ ./preprocess.py --in-file list.pdf --out-file words.txt
+    $ uil-preprocess --in-file list.pdf --out-file words.txt
 """
 import argparse
 import logging

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 """Generate a spoken-audio deck from a word list using OpenAI TTS.
 
 Reads a plain text file (one word per line, as produced by
@@ -8,7 +7,7 @@ skipped, so the script can be re-run to fill gaps cheaply. Requests
 are throttled to stay within the API's per-minute rate limit.
 
 Example:
-    $ ./text_to_speech.py --in-file words.txt --max-rpm 50
+    $ uil-text-to-speech --in-file words.txt --max-rpm 50
 """
 
 import argparse
@@ -20,6 +19,25 @@ import time
 from openai import OpenAI
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+
+def clip_filename(index: int, word: str, audio_format: str) -> str:
+    """Build the clip filename for one word.
+
+    The md5 of the word keeps the filename stable across re-runs (so a
+    partially generated deck is filled in, not duplicated); the 1-based
+    index prefix preserves word-list order for play.py.
+
+    Args:
+        index: Zero-based position of the word in the input list.
+        word: The word to be spoken.
+        audio_format: Filename extension, e.g. "wav".
+
+    Returns:
+        Filename of the form "<index + 1>-<md5-of-word>.<ext>".
+    """
+    word_md5 = hashlib.md5(word.encode('utf-8')).hexdigest()
+    return f'{index + 1}-{word_md5}.{audio_format}'
 
 
 def main() -> None:
@@ -63,10 +81,7 @@ def main() -> None:
                 start_time = time.time()
                 num_converted = 0
 
-            # md5 of the word makes the filename stable across re-runs,
-            # while the index prefix preserves list order for play.py.
-            input_word_md5 = hashlib.md5(input_word.encode('utf-8')).hexdigest()
-            audio_file = os.path.join('audio', f'{index + 1}-{input_word_md5}.{args.audio_format}')
+            audio_file = os.path.join('audio', clip_filename(index, input_word, args.audio_format))
 
             if not os.path.isfile(audio_file):
                 logging.info(f'input_word={input_word}')

@@ -18,3 +18,4 @@ A+Spelling*.txt
 
 # personal editor config (references local filenames)
 .vscode/
+.opencode/
