@@ -1,12 +1,17 @@
 # uil-dict-skills
 
-Practice tool for the [UIL Dictionary Skills](https://www.uiltexas.org/academics/dictionary-skills)
-test: turns the official spelling-list PDF into per-word audio clips with an
-OpenAI text-to-speech voice, then drills them as randomized quiz playback.
+Practice tool for the UIL A+ Spelling and Dictionary Skills tests: turns the
+official spelling-list PDF into per-word audio clips with an OpenAI
+text-to-speech voice, then drills them as randomized quiz playback.
 
-The test asks students to identify a spelled word, its definition, or both,
-from hearing it spoken. This repo automates converting the annual UIL
-"A+ Spelling" list into a listening-practice deck.
+The [A+ Spelling contest](https://www.uiltexas.org/academics/spelling) is a
+written vocabulary and spelling competition for students in grades 3–8.
+Students listen to a pronouncer read words aloud at about five words per
+minute and write them down on paper. The related
+[Dictionary Skills test](https://www.uiltexas.org/academics/dictionary-skills)
+asks students to identify a spelled word, its definition, or both, from
+hearing it spoken. This repo automates converting the annual UIL
+"A+ Spelling" list into a listening-practice deck for either event.
 
 ## Pipeline
 
