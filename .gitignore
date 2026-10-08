@@ -13,7 +13,7 @@ __pycache__/
 *.pyc
 .DS_Store
 
-# generated output (regenerate with text_to_speech.py / package.sh)
+# generated output (regenerate with text_to_speech.py)
 audio/
 uil.zip
 
@@ -25,4 +25,5 @@ A+Spelling*.txt
 # personal editor config (references local filenames)
 .vscode/
 .opencode/
-*.egg-info/
+.mypy_cache/
+.ruff_cache/
