@@ -24,17 +24,36 @@ TextGenerator = Generator[str, None, None]
 # A line paired with whether a ligature repair was applied to it.
 TextGeneratorWithRepair = Generator[tuple[str, bool], None, None]
 
-# Matches the "N. " prefix of a numbered dictionary entry.
-DICTIONARY_WORD_PATTERN: str = r"^\d+\. "
+# Matches the "N." or "N. " prefix of a numbered dictionary entry.
+# The space after the period is not reliable across pdftotext
+# versions, so it is optional here.
+DICTIONARY_WORD_PATTERN: str = r"^\d+\.\s*"
 # Matches annotations after the headword, e.g. ", noun" or "(abbr.)".
 EXTRA_WORD_PATTERN: str = r"[,\(].*$"
+
+# Matches page-footer artifacts that pdftotext glues onto word lines.
+# Two shapes occur: the readable footer ("Page 16 • UIL A+ Spelling
+# Word List 2024-2025") and a glyph-ciphered variant emitted when the
+# PDF uses a custom-encoded font ("THK @) Rodkkhmf Vnqc Khrs" is the
+# glyph-shifted "UIL A+ Spelling Word List", "OXfd" is "Page").
+PAGE_ARTIFACT_PATTERN = re.compile(
+    r"UIL A\+ Spelling Word List \d{4}-\d{4}(?:\s*\u2022\s*Page \d+)?"
+    r"|Page \d+\s*\u2022?"
+    r"|\u2022"
+    r"|(?:OXfd \d+\S* z )?THK @\) Rodkkhmf Vnqc Khrs \S*,\S+(?: z OXfd \d+\S*)?"
+)
+
+# Matches a grade-section header glued to the first entry of the
+# section, e.g. "Grades 5-6 1. abnormality" (or the "(cont'd)" variant).
+GRADE_HEADER_PATTERN = re.compile(r"^Grades \d+-\d+(?: \(cont.d\))?\s*")
 
 
 def preprocess(file_name: str) -> TextGeneratorWithRepair:
     """Extract cleaned dictionary words from a PDF.
 
-    Chains the extraction stages: pdftotext, entry filtering, prefix and
-    annotation stripping, and ligature repair.
+    Chains the extraction stages: pdftotext, page-artifact and
+    grade-header stripping, entry filtering, prefix and annotation
+    stripping, and ligature repair.
 
     Args:
         file_name: Path to a PDF containing numbered dictionary entries.
@@ -45,9 +64,54 @@ def preprocess(file_name: str) -> TextGeneratorWithRepair:
     """
     yield from repair_ligatures(
         remove_extra_word_pattern(
-            remove_number_pattern(dictionary_words_only(run_pdftotext(file_name)))
+            remove_number_pattern(
+                dictionary_words_only(
+                    strip_grade_headers(strip_page_artifacts(run_pdftotext(file_name)))
+                )
+            )
         )
     )
+
+
+def strip_page_artifacts(lines: TextGenerator) -> TextGenerator:
+    """Remove page-footer artifacts glued to word lines by pdftotext.
+
+    pdftotext output can merge the running footer ("Page N • UIL A+
+    Spelling Word List YYYY-YYYY") onto the same line as a word. Left
+    in place, the merged text passes downstream as a bogus "word".
+
+    Args:
+        lines: Lines of pdftotext output.
+
+    Yields:
+        Lines with footer text removed; empty results are dropped.
+    """
+    for line in lines:
+        cleaned = PAGE_ARTIFACT_PATTERN.sub("", line).strip()
+        if cleaned != line.strip():
+            logging.info(f"stripped page artifacts: {line!r} -> {cleaned!r}")
+        if cleaned:
+            yield cleaned
+
+
+def strip_grade_headers(lines: TextGenerator) -> TextGenerator:
+    """Remove grade-section headers glued to the section's first entry.
+
+    pdftotext output can merge the section header onto the first entry,
+    e.g. "Grades 5-6 1. abnormality", which would otherwise fail the
+    numbered-entry filter.
+
+    Args:
+        lines: Lines of pdftotext output.
+
+    Yields:
+        Lines with a leading "Grades X-Y" header removed.
+    """
+    for line in lines:
+        cleaned = GRADE_HEADER_PATTERN.sub("", line)
+        if cleaned != line:
+            logging.info(f"stripped grade header: {line!r} -> {cleaned!r}")
+        yield cleaned
 
 
 def repair_ligatures(lines: TextGenerator) -> TextGeneratorWithRepair:

@@ -61,6 +61,42 @@ def test_repair_ligatures_passthrough_without_ee() -> None:
     assert results == [("plain", False)]
 
 
+def test_strip_page_artifacts_removes_readable_footer() -> None:
+    """Remove the readable running footer glued to a word."""
+    line = "zestfullyPage 16 \u2022 UIL A+ Spelling Word List 2024-2025"
+    assert list(preprocess.strip_page_artifacts(gen(line))) == ["zestfully"]
+    line = "unplugUIL A+ Spelling Word List 2024-2025 \u2022 Page 15"
+    assert list(preprocess.strip_page_artifacts(gen(line))) == ["unplug"]
+
+
+def test_strip_page_artifacts_removes_ciphered_footer() -> None:
+    """Remove the glyph-ciphered footer (custom-encoded PDF fonts)."""
+    line = "crustaceanTHK @) Rodkkhmf Vnqc Khrs 1/12,1/13 z OXfd 06"
+    assert list(preprocess.strip_page_artifacts(gen(line))) == ["crustacean"]
+    line = "ghostwriteOXfd 07 z THK @) Rodkkhmf Vnqc Khrs 1/12,1/13"
+    assert list(preprocess.strip_page_artifacts(gen(line))) == ["ghostwrite"]
+
+
+def test_strip_grade_headers_unglues_first_entry() -> None:
+    """Remove a grade-section header glued to the section's first entry."""
+    assert list(preprocess.strip_grade_headers(gen("Grades 5-6 1. abnormality"))) == [
+        "1. abnormality"
+    ]
+    assert list(preprocess.strip_grade_headers(gen("Grades 3-4 (cont\u2019d) 2. next"))) == [
+        "2. next"
+    ]
+    assert list(preprocess.strip_grade_headers(gen("2. ordinary"))) == ["2. ordinary"]
+
+
+def test_numbered_entry_matches_without_space() -> None:
+    """Match entries whether or not pdftotext keeps the "N. " space."""
+    assert list(preprocess.dictionary_words_only(gen("2.absent", "3. present"))) == [
+        "2.absent",
+        "3. present",
+    ]
+    assert list(preprocess.remove_number_pattern(gen("2.absent"))) == ["absent"]
+
+
 def test_preprocess_pipeline_end_to_end(monkeypatch: pytest.MonkeyPatch) -> None:
     """Run every stage in sequence over faked pdftotext output.
 
