@@ -1,19 +1,29 @@
 # uil-dict-skills
 
-Practice tool for the UIL A+ Spelling and Dictionary Skills tests: turns the
-official spelling-list PDF into per-word audio clips with an OpenAI
-text-to-speech voice, then drills them as randomized quiz playback.
+Practice tool for the UIL A+ Spelling and high-school Spelling & Vocabulary
+tests: turns the official spelling-list PDF into per-word audio clips with an
+OpenAI text-to-speech voice, then drills them as randomized quiz playback.
 
 The [A+ Spelling contest](https://www.uiltexas.org/aplus/events/aplus-spelling) is a
 written vocabulary and spelling competition for students in grades 3–8.
 Students listen to a pronouncer read words aloud at about five words per
 minute and write them down on paper. The related
 [Dictionary Skills test](https://www.uiltexas.org/aplus/events/aplus-dictionary-skills)
-asks students to answer 40 objective questions about dictionary use —
-word origins, parts of speech, variant spellings, alphabetizing — in 20
-minutes, using a dictionary during the contest. This repo automates
-converting the annual UIL "A+ Spelling" list into a listening-practice
-deck for the spelling event.
+asks students to answer 40 objective questions about dictionary use (word
+origins, parts of speech, variant spellings, alphabetizing) in 20 minutes,
+using a dictionary during the contest.
+
+At the high school level, the contest becomes
+[Spelling & Vocabulary](https://www.uiltexas.org/academics/academic-contests/spelling-and-vocabulary),
+a three-part test: a fifteen-minute vocabulary and proofreading section of
+30 multiple-choice questions, then the hand-written spelling of 70 words
+pronounced aloud, plus a 20-word tiebreaker section. Eighty percent of the
+test comes from the annual "Word Power" list; the rest comes from outside
+sources such as proper names and words in the news.
+
+This repo automates converting both annual UIL word lists, the A+ Spelling
+list and the high-school Word Power list, into listening-practice decks
+for the spelling events.
 
 ## Pipeline
 
@@ -24,16 +34,16 @@ list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI
 ## Requirements
 
 - Python 3.10+ (3.12+ recommended)
-- [poppler](https://poppler.freedesktop.org/) — provides `pdftotext`
-  - **macOS** — `brew install poppler`
-  - **Windows** — download the latest `Release-xx.yy.zz-0.zip` from
+- [poppler](https://poppler.freedesktop.org/) provides `pdftotext`
+  - macOS: `brew install poppler`
+  - Windows: download the latest `Release-xx.yy.zz-0.zip` from
     [poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases),
     unzip it, and add its `Library/bin` folder to your `PATH`
-  - **Linux** — `sudo apt install poppler-utils` (Debian/Ubuntu),
+  - Linux: `sudo apt install poppler-utils` (Debian/Ubuntu),
     `sudo dnf install poppler-utils` (Fedora), or
     `sudo pacman -S poppler` (Arch)
 - An [OpenAI API key](https://platform.openai.com/api-keys) with TTS quota
-- macOS, Windows, or Linux — playback uses each platform's built-in player
+- macOS, Windows, or Linux; playback uses each platform's built-in player
 
 ## Setup
 
@@ -65,25 +75,20 @@ and so on.
 
 ## Usage
 
-**1. Preprocess the word list.** Extract the dictionary-word lines from the
+1. Preprocess the word list. Extract the dictionary-word lines from the
 PDF, strip numbering and parentheticals, and repair ligature glyphs that
-`pdftotext` mangles:
-
-```bash
-.venv/bin/uil-preprocess --in-file YOUR_LIST.pdf --out-file words.txt
-```
-
-By default all grade sections are extracted, concatenated in the PDF's
-order (the deck plays 3-4, then 5-6, then 7-8). To drill one grade band,
-extract just that section:
+`pdftotext` mangles. Pass `--grades` to say which list you are parsing:
 
 ```bash
 .venv/bin/uil-preprocess --in-file list.pdf --out-file words-5-6.txt --grades 5-6
 ```
 
-Valid grades are `3-4`, `5-6`, `7-8`, or `all` (default).
+Valid grades are `3-4`, `5-6`, and `7-8` (the A+ Spelling grade sections,
+extracted one section per run) and `high-school` (the high-school Word Power
+list, emitted in entry-number order). To build a deck covering several
+sections, run the command once per section and concatenate the outputs.
 
-**2. Generate speech.** Each word becomes `audio/<index>-<md5>.wav`
+2. Generate speech. Each word becomes `audio/<index>-<md5>.wav`
 (override with `--audio-format`). Existing files are skipped, so re-running
 only fills gaps. The script self-throttles to stay under your model's RPM
 limit:
@@ -92,7 +97,7 @@ limit:
 .venv/bin/uil-text-to-speech --in-file words.txt --max-rpm 50
 ```
 
-**3. Drill.** Each word is spoken `--word-repeat` times with a rest between;
+3. Drill. Each word is spoken `--word-repeat` times with a rest between;
 `--range` restricts to a slice of the list (1-based, e.g. `10:50`):
 
 ```bash
@@ -101,13 +106,13 @@ limit:
 
 ## Bringing your own word list
 
-This repo contains **no word lists**. The annual UIL "A+ Spelling" list is a
+This repo contains no word lists. The annual UIL "A+ Spelling" list is a
 copyrighted compilation; download your own copy from
 [uiltexas.org](https://www.uiltexas.org/aplus/events/aplus-dictionary-skills) and pass
-it to `preprocess.py`. Any line-oriented word list works — one word per
+it to `preprocess.py`. Any line-oriented word list works; one word per
 plain-text line is all `text_to_speech.py` requires.
 
-The current year's list PDF lives at a predictable URL — substitute the
+The current year's list PDF lives at a predictable URL. Substitute the
 school years you want, e.g. `2025_26` for 2025–26:
 
 ```
@@ -121,9 +126,16 @@ curl -fL -o A+Spelling_2025_26.pdf \
 
 Older years follow the same pattern (`A+Spelling_2023_24.pdf`,
 `A+Spelling_2024_25.pdf`), though the exact filename has varied slightly
-between years — if a URL 404s, check the
+between years. If a URL 404s, check the
 [A+ Spelling event page](https://www.uiltexas.org/aplus/events/aplus-spelling)
 for that year's link.
+
+The high-school Word Power list lives at a different URL and spells out
+both years with a dash; parse it with `--grades high-school`:
+
+```
+https://www.uiltexas.org/files/academics/WordPower_2026-2027.pdf
+```
 
 ## Repository layout
 
@@ -134,7 +146,7 @@ for that year's link.
 | `src/uil_dict_skills/text_to_speech.py` | word list → per-word WAV clips via OpenAI TTS |
 | `src/uil_dict_skills/play.py` | quiz-mode playback of the audio deck |
 | `setup.sh` / `setup.bat` | venv bootstrap, editable package install, tooling checks (macOS/Linux vs. Windows) |
-| `tests/` | pytest suite (runs offline — API and players are faked) |
+| `tests/` | pytest suite (runs offline; API and players are faked) |
 
 ## Playback
 
@@ -142,10 +154,10 @@ Audio is generated as WAV, the one format every platform plays natively, so
 no player binaries are bundled or installed. `play.py` picks the built-in
 player for the OS it runs on:
 
-- **macOS** — `afplay`
-- **Windows** — PowerShell `Media.SoundPlayer` (`PlaySync`, which blocks so
+- macOS: `afplay`
+- Windows: PowerShell `Media.SoundPlayer` (`PlaySync`, which blocks so
   the word-repeat/rest pacing works)
-- **Linux** — `aplay` (ALSA)
+- Linux: `aplay` (ALSA)
 
 Older decks generated as FLAC still play on macOS via
 `.venv/bin/uil-play --audio-format flac`.
