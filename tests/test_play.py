@@ -24,7 +24,18 @@ def make_run_recorder(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
     calls: list[list[str]] = []
 
     class Result:
-        """Stand-in for CompletedProcess: the loop asserts success."""
+        """Stand-in for subprocess.CompletedProcess.
+
+        Carries stdout/stderr because the patch replaces the global
+        subprocess.run — anything else that shells out through it
+        (e.g. platform.system() on Windows/Python 3.10) gets this
+        object back and expects the CompletedProcess surface.
+        """
+
+        def __init__(self) -> None:
+            self.returncode = 0
+            self.stdout = ""
+            self.stderr = ""
 
         def check_returncode(self) -> None:
             """Simulate a successful player invocation."""
@@ -159,5 +170,9 @@ def test_main_range_slice_selects_subset(tmp_path: Path, monkeypatch: pytest.Mon
     )
     calls = make_run_recorder(monkeypatch)
     play.main()
-    played = [argv[-1].replace("\\", "/").split("/")[-1] for argv in calls]
+    # The player command wraps the clip path differently per platform
+    # (bare path on macOS/Linux, embedded in a PowerShell script on
+    # Windows), so extract clips by membership rather than position.
+    clip_names = {f"{i}-w{i}.wav" for i in (1, 2, 3)}
+    played = [name for argv in calls for arg in argv for name in clip_names if name in arg]
     assert played == ["2-w2.wav", "3-w3.wav"]
