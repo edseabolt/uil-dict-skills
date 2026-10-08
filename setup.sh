@@ -12,7 +12,7 @@ fi
 echo 'dependencies installed'
 
 if ! command -v pdftotext >/dev/null 2>&1; then
-    echo "warning: pdftotext not found (install poppler: 'brew install poppler')" >&2
+    echo 'warning: pdftotext not found — install poppler (see README.md)' >&2
 fi
 
 if [ ! -f .env ]; then

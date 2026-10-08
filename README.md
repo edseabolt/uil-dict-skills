@@ -18,6 +18,13 @@ list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI
 
 - Python 3.12+
 - [poppler](https://poppler.freedesktop.org/) — provides `pdftotext`
+  - **macOS** — `brew install poppler`
+  - **Windows** — download the latest `Release-xx.yy.zz-0.zip` from
+    [poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases),
+    unzip it, and add its `Library/bin` folder to your `PATH`
+  - **Linux** — `sudo apt install poppler-utils` (Debian/Ubuntu),
+    `sudo dnf install poppler-utils` (Fedora), or
+    `sudo pacman -S poppler` (Arch)
 - An [OpenAI API key](https://platform.openai.com/api-keys) with TTS quota
 - macOS, Windows, or Linux — playback uses each platform's built-in player
 
