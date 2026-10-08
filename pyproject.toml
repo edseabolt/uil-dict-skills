@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uil-dict-skills"
+version = "0.1.0"
+description = "UIL Dictionary Skills practice deck: spelling-list PDF to spoken-word audio drills"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = ["openai==3.26.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+uil-preprocess = "uil_dict_skills.preprocess:main"
+uil-text-to-speech = "uil_dict_skills.text_to_speech:main"
+uil-play = "uil_dict_skills.play:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
