@@ -48,6 +48,22 @@ def make_run_recorder(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
     return calls
 
 
+def player_calls(calls: list[list[str]]) -> list[list[str]]:
+    """Return the recorded invocations that actually play a clip.
+
+    On Windows/Python 3.10, platform.system() shells out via
+    subprocess.run (the "ver" command); that probe also lands in the
+    recorder. Player invocations are the ones referencing a clip file.
+
+    Args:
+        calls: Every argv list captured by make_run_recorder.
+
+    Returns:
+        Only the argv lists that reference a .wav clip.
+    """
+    return [argv for argv in calls if any(".wav" in arg for arg in argv)]
+
+
 def test_parse_range_full_slice() -> None:
     """Convert a bounded "10:50" range to 0-based inclusive-exclusive bounds."""
     assert play.parse_range("10:50", 100) == (9, 50)
@@ -149,7 +165,7 @@ def test_main_plays_each_clip_word_repeat_times(
     )
     calls = make_run_recorder(monkeypatch)
     play.main()
-    assert len(calls) == 6  # 2 clips x 3 repeats
+    assert len(player_calls(calls)) == 6  # 2 clips x 3 repeats
 
 
 def test_main_range_slice_selects_subset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
