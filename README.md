@@ -40,12 +40,28 @@ list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI
 ```bash
 # macOS / Linux / Git Bash:
 ./setup.sh          # creates .venv, installs the package (editable) + dev tools, sanity-checks
-# Windows (native):
-setup.bat           # same steps for cmd.exe
+# Windows (native cmd.exe):
+setup.bat           # same steps
+```
+
+Then provide your OpenAI API key:
+
+```bash
 cp .env.example .env
 $EDITOR .env        # paste your OpenAI API key
-source .env
+source .env         # macOS / Linux / Git Bash
 ```
+
+```powershell
+# Windows PowerShell:
+Copy-Item .env.example .env
+notepad .env                        # paste your OpenAI API key
+$env:OPENAI_API_KEY = (Get-Content .env) -replace 'export OPENAI_API_KEY=', ''
+```
+
+Note for Windows: commands live in `.venv\Scripts\` (not `.venv/bin/`);
+below, read `.venv\Scripts\uil-preprocess` for `.venv/bin/uil-preprocess`,
+and so on.
 
 ## Usage
 
@@ -117,7 +133,7 @@ for that year's link.
 | `src/uil_dict_skills/preprocess.py` | PDF → cleaned word list (generator pipeline) |
 | `src/uil_dict_skills/text_to_speech.py` | word list → per-word WAV clips via OpenAI TTS |
 | `src/uil_dict_skills/play.py` | quiz-mode playback of the audio deck |
-| `setup.sh` | venv bootstrap, editable package install, tooling checks |
+| `setup.sh` / `setup.bat` | venv bootstrap, editable package install, tooling checks (macOS/Linux vs. Windows) |
 | `tests/` | pytest suite (runs offline — API and players are faked) |
 
 ## Playback
@@ -132,7 +148,7 @@ player for the OS it runs on:
 - **Linux** — `aplay` (ALSA)
 
 Older decks generated as FLAC still play on macOS via
-`python play.py --audio-format flac`.
+`.venv/bin/uil-play --audio-format flac`.
 
 ## Security
 
