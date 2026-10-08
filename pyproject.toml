@@ -10,7 +10,12 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
+authors = [{ name = "Ed Seabolt" }]
 dependencies = ["openai==3.26.0"]
+
+[project.urls]
+Repository = "https://github.com/edseabolt/uil-dict-skills"
+Issues = "https://github.com/edseabolt/uil-dict-skills/issues"
 
 [project.optional-dependencies]
 dev = [

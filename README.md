@@ -139,11 +139,18 @@ it. Never commit `.env`. Rotate the key if it ever leaks.
 ## Development
 
 ```bash
-.venv/bin/pytest        # run the test suite
+.venv/bin/pytest                        # run the test suite
+.venv/bin/black src tests               # format
+.venv/bin/isort src tests               # sort imports
+.venv/bin/autoflake tests/*.py src/uil_dict_skills/*.py   # strip unused imports/vars
+.venv/bin/mypy                          # type check (untyped defs rejected)
+.venv/bin/pylint src                    # lint
 ```
 
 Tests are fully offline: the OpenAI client and all subprocess calls are
-faked, so the suite never touches the network or a player binary.
+faked, so the suite never touches the network or a player binary. The
+same checks run in CI on Linux, macOS, and Windows across Python 3.10
+and 3.13.
 
 ## License
 
