@@ -4,6 +4,7 @@ All tests run offline: subprocess is faked at the run_cmd boundary, so
 no pdftotext binary or real PDF is involved.
 """
 
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -95,6 +96,89 @@ def test_numbered_entry_matches_without_space() -> None:
         "3. present",
     ]
     assert list(preprocess.remove_number_pattern(gen("2.absent"))) == ["absent"]
+
+
+def test_tag_sections_tracks_current_header() -> None:
+    """Attach the most recent section header to every subsequent line."""
+    lines = [
+        "intro",
+        "Grades 3-4 1. word",
+        "2.word",
+        "Grades 3-4 (cont\u2019d)",
+        "Grades 5-6 1. next",
+    ]
+    tagged = list(preprocess.tag_sections(gen(*lines)))
+    assert tagged == [
+        ("intro", None),
+        ("Grades 3-4 1. word", "3-4"),
+        ("2.word", "3-4"),
+        ("Grades 3-4 (cont\u2019d)", "3-4"),
+        ("Grades 5-6 1. next", "5-6"),
+    ]
+
+
+def gen_tagged(
+    *pairs: tuple[str, str | None],
+) -> Generator[tuple[str, str | None], None, None]:
+    """Wrap (line, section) pairs into the shape filter_sections consumes.
+
+    Args:
+        *pairs: Tagged line tuples.
+
+    Yields:
+        Each pair in order.
+    """
+    yield from pairs
+
+
+def test_filter_sections_keeps_only_requested() -> None:
+    """Drop lines whose section was not selected; None selects everything."""
+    tagged = [("a", "3-4"), ("b", "5-6"), ("c", "3-4"), ("d", None)]
+    assert list(preprocess.filter_sections(gen_tagged(*tagged), frozenset({"3-4"}))) == [
+        "a",
+        "c",
+    ]
+    assert list(preprocess.filter_sections(gen_tagged(*tagged), None)) == ["a", "b", "c", "d"]
+
+
+def test_preprocess_grade_filter_end_to_end(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Extract only the requested section through the full pipeline.
+
+    Args:
+        monkeypatch: Fakes run_cmd with two grade sections of raw lines.
+    """
+    raw = [
+        "Grades 3-4 1. cat, noun",
+        "2.dog",
+        "Grades 7-8 1. abdicate",
+        "2. ef\ue022cient",
+    ]
+    monkeypatch.setattr(preprocess, "run_cmd", lambda args: gen(*raw))
+    results = list(preprocess.preprocess("fake.pdf", frozenset({"7-8"})))
+    assert [word for word, _ in results] == ["abdicate", "efficient"]
+
+
+def test_main_grades_flag_selects_section(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """--grades 5-6 writes only that section's words.
+
+    Args:
+        tmp_path: Temporary directory receiving the output file.
+        monkeypatch: Fakes run_cmd and the CLI arguments.
+    """
+    raw = [
+        "Grades 3-4 1. cat",
+        "2.dog",
+        "Grades 5-6 1. abnormality",
+        "2.abode",
+    ]
+    monkeypatch.setattr(preprocess, "run_cmd", lambda args: gen(*raw))
+    out_file = tmp_path / "words.txt"
+    monkeypatch.setattr(
+        "sys.argv",
+        ["preprocess.py", "--in-file", "fake.pdf", "--out-file", str(out_file), "--grades", "5-6"],
+    )
+    preprocess.main()
+    assert out_file.read_text() == "abnormality\nabode\n"
 
 
 def test_preprocess_pipeline_end_to_end(monkeypatch: pytest.MonkeyPatch) -> None:

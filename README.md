@@ -47,6 +47,16 @@ PDF, strip numbering and parentheticals, and repair ligature glyphs that
 .venv/bin/uil-preprocess --in-file YOUR_LIST.pdf --out-file words.txt
 ```
 
+By default all grade sections are extracted, concatenated in the PDF's
+order (the deck plays 3-4, then 5-6, then 7-8). To drill one grade band,
+extract just that section:
+
+```bash
+.venv/bin/uil-preprocess --in-file list.pdf --out-file words-5-6.txt --grades 5-6
+```
+
+Valid grades are `3-4`, `5-6`, `7-8`, or `all` (default).
+
 **2. Generate speech.** Each word becomes `audio/<index>-<md5>.wav`
 (override with `--audio-format`). Existing files are skipped, so re-running
 only fills gaps. The script self-throttles to stay under your model's RPM

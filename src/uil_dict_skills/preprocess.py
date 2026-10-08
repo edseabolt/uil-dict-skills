@@ -47,30 +47,74 @@ PAGE_ARTIFACT_PATTERN = re.compile(
 # section, e.g. "Grades 5-6 1. abnormality" (or the "(cont'd)" variant).
 GRADE_HEADER_PATTERN = re.compile(r"^Grades \d+-\d+(?: \(cont.d\))?\s*")
 
+# Matches any grade-section header line, glued or bare, e.g.
+# "Grades 5-6", "Grades 5-6 (cont'd)", "Grades 5-6 1. abnormality".
+SECTION_HEADER_PATTERN = re.compile(r"^Grades (\d+-\d+)")
 
-def preprocess(file_name: str) -> TextGeneratorWithRepair:
+
+def preprocess(file_name: str, grades: frozenset[str] | None = None) -> TextGeneratorWithRepair:
     """Extract cleaned dictionary words from a PDF.
 
-    Chains the extraction stages: pdftotext, page-artifact and
-    grade-header stripping, entry filtering, prefix and annotation
-    stripping, and ligature repair.
+    Chains the extraction stages: pdftotext, page-artifact stripping,
+    optional grade-section filtering, grade-header stripping, entry
+    filtering, prefix and annotation stripping, and ligature repair.
 
     Args:
         file_name: Path to a PDF containing numbered dictionary entries.
+        grades: Grade sections to keep, e.g. frozenset({"5-6"}), or
+            None for all sections.
 
     Yields:
         Tuples of (word, repaired) where repaired is True when a
         ligature glyph was rewritten for that word.
     """
+    lines = strip_page_artifacts(run_pdftotext(file_name))
+    lines = filter_sections(tag_sections(lines), grades)
+    lines = strip_grade_headers(lines)
     yield from repair_ligatures(
-        remove_extra_word_pattern(
-            remove_number_pattern(
-                dictionary_words_only(
-                    strip_grade_headers(strip_page_artifacts(run_pdftotext(file_name)))
-                )
-            )
-        )
+        remove_extra_word_pattern(remove_number_pattern(dictionary_words_only(lines)))
     )
+
+
+def tag_sections(lines: TextGenerator) -> Generator[tuple[str, str | None], None, None]:
+    """Tag each line with the grade section it belongs to.
+
+    Args:
+        lines: Lines of pdftotext output.
+
+    Yields:
+        Tuples of (line, section) where section is the grade band
+        (e.g. "5-6") of the most recent section header, or None for
+        lines before the first header.
+    """
+    section = None
+    for line in lines:
+        match = SECTION_HEADER_PATTERN.match(line)
+        if match:
+            section = match.group(1)
+        yield line, section
+
+
+def filter_sections(
+    tagged: Generator[tuple[str, str | None], None, None], grades: frozenset[str] | None
+) -> TextGenerator:
+    """Drop lines outside the requested grade sections.
+
+    Args:
+        tagged: (line, section) pairs from tag_sections.
+        grades: Grade sections to keep, or None to keep everything.
+
+    Yields:
+        Lines whose section is selected (or all lines when grades is
+        None).
+    """
+    if grades is None:
+        for line, _section in tagged:
+            yield line
+        return
+    for line, section in tagged:
+        if section in grades:
+            yield line
 
 
 def strip_page_artifacts(lines: TextGenerator) -> TextGenerator:
@@ -253,13 +297,22 @@ def main() -> None:
     parser.add_argument(
         "--out-file", required=True, help="output TXT file containing preprocessed dictionary words"
     )
+    parser.add_argument(
+        "--grades",
+        choices=["3-4", "5-6", "7-8", "all"],
+        default="all",
+        help="grade section to extract; all sections by default",
+    )
     args = parser.parse_args()
+
+    grades = None if args.grades == "all" else frozenset({args.grades})
+    logging.info(f"grades={args.grades}")
 
     num_words = 0
     num_repaired = 0
 
     with open(args.out_file, "w", encoding="utf-8") as f:
-        for result in preprocess(args.in_file):
+        for result in preprocess(args.in_file, grades):
             f.write(f"{result[0]}\n")
             num_words += 1
             if result[1]:
