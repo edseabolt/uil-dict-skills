@@ -1,4 +1,15 @@
 #! /usr/bin/env python3
+"""Drill the audio deck produced by text_to_speech.py.
+
+Plays clips from audio/ (optionally a 1-based --range slice), each
+spoken --word-repeat times with a pause between utterances, in random
+or sorted order. Playback uses the built-in player for the host OS:
+afplay on macOS, PowerShell Media.SoundPlayer on Windows, aplay on
+Linux.
+
+Example:
+    $ ./play.py --rest-time 5 --word-repeat 3 --range 10:50
+"""
 
 import argparse
 import logging
@@ -12,6 +23,13 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 
 
 def main() -> None:
+    '''CLI entry point: run the drill loop over the audio deck.
+
+    Loads clip filenames from audio/ ordered by their index prefix,
+    applies the optional --range slice, shuffles if random play is on,
+    then plays each clip --word-repeat times with --rest-time seconds
+    between utterances.
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--rest-time', default=5, type=int, help='time in seconds to rest between word utterances')
     parser.add_argument('--word-repeat', default=3, type=int, help='number of times to repeat the current word before moving to next word')
@@ -26,6 +44,8 @@ def main() -> None:
         return
 
     audio_files = [file for file in os.listdir('audio') if file.endswith(f'.{args.audio_format}')]
+    # Filenames are "<index>-<md5>.<ext>"; the index prefix restores the
+    # word-list order that text_to_speech.py wrote in.
     audio_files = list(sorted(audio_files, key=lambda s: int(s.split('-')[0])))
     num_audio_files = len(audio_files)
     logging.info(f'using num_audio_files={num_audio_files}')

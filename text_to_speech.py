@@ -1,4 +1,15 @@
 #! /usr/bin/env python3
+"""Generate a spoken-audio deck from a word list using OpenAI TTS.
+
+Reads a plain text file (one word per line, as produced by
+preprocess.py) and creates one audio clip per word under audio/,
+named "<index>-<md5-of-word>.<format>". Clips that already exist are
+skipped, so the script can be re-run to fill gaps cheaply. Requests
+are throttled to stay within the API's per-minute rate limit.
+
+Example:
+    $ ./text_to_speech.py --in-file words.txt --max-rpm 50
+"""
 
 import argparse
 import hashlib
@@ -12,6 +23,13 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 
 
 def main() -> None:
+    '''CLI entry point: convert a word list to per-word audio clips.
+
+    Reads the input file, then for each word computes the clip path and
+    calls the OpenAI speech API only when the clip does not already
+    exist. Pauses as needed to keep the request rate within --max-rpm
+    per --max-time-secs seconds.
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--in-file', required=True, type=str, help='input file containing dictionary words to convert to spoken speech')
     parser.add_argument('--max-rpm', default=50, type=int, help='maximum requests per minute that the OpenAI API provides for the given model')
@@ -33,6 +51,8 @@ def main() -> None:
 
     with OpenAI(max_retries=3) as client:
         for index, input_word in enumerate(input_words):
+            # Simple fixed-window throttle: after max_rpm requests within
+            # the window, sleep out the remainder of the window.
             if num_converted == args.max_rpm:
                 delta_time = time.time() - start_time
                 if delta_time < args.max_time_secs:
@@ -43,6 +63,8 @@ def main() -> None:
                 start_time = time.time()
                 num_converted = 0
 
+            # md5 of the word makes the filename stable across re-runs,
+            # while the index prefix preserves list order for play.py.
             input_word_md5 = hashlib.md5(input_word.encode('utf-8')).hexdigest()
             audio_file = os.path.join('audio', f'{index + 1}-{input_word_md5}.{args.audio_format}')
 
