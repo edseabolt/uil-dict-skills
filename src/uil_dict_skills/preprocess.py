@@ -15,14 +15,14 @@ import argparse
 import logging
 import re
 import subprocess
-from typing import Generator, List, Tuple
+from collections.abc import Generator
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 # A line of raw pdftotext output.
 TextGenerator = Generator[str, None, None]
 # A line paired with whether a ligature repair was applied to it.
-TextGeneratorWithRepair = Generator[Tuple[str, bool], None, None]
+TextGeneratorWithRepair = Generator[tuple[str, bool], None, None]
 
 # Matches the "N. " prefix of a numbered dictionary entry.
 DICTIONARY_WORD_PATTERN: str = r"^\d+\. "
@@ -145,7 +145,7 @@ def run_pdftotext(file_name: str) -> TextGenerator:
     yield from run_cmd(args)
 
 
-def run_cmd(args: List[str]) -> TextGenerator:
+def run_cmd(args: list[str]) -> TextGenerator:
     """Run a subprocess and yield its stdout line by line.
 
     Args:
