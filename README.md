@@ -38,7 +38,10 @@ list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI
 ## Setup
 
 ```bash
+# macOS / Linux / Git Bash:
 ./setup.sh          # creates .venv, installs the package (editable) + dev tools, sanity-checks
+# Windows (native):
+setup.bat           # same steps for cmd.exe
 cp .env.example .env
 $EDITOR .env        # paste your OpenAI API key
 source .env
