@@ -8,7 +8,7 @@ if [ ! -d .venv ]; then
 fi
 
 .venv/bin/pip install --quiet --upgrade pip
-.venv/bin/pip install --quiet -r requirements.txt
+.venv/bin/pip install --quiet -e ".[dev]"
 echo 'dependencies installed'
 
 if ! command -v pdftotext >/dev/null 2>&1; then
@@ -31,4 +31,5 @@ case "$(uname -s)" in
         ;;
 esac
 
-echo 'done. see README.md for the preprocess -> text_to_speech -> play workflow.'
+echo "done. installed: uil-preprocess, uil-text-to-speech, uil-play (plus pytest)."
+echo "see README.md for the preprocess -> text_to_speech -> play workflow."

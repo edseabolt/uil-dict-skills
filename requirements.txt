@@ -1,2 +1,0 @@
-# direct dependency; transitive deps are resolved by pip
-openai==3.26.0

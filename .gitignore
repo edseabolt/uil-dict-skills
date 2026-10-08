@@ -3,6 +3,12 @@
 
 # local environments
 .venv/
+
+# python build/test artifacts
+build/
+dist/
+*.egg-info/
+.pytest_cache/
 __pycache__/
 *.pyc
 .DS_Store

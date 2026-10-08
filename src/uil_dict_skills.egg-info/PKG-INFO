@@ -29,7 +29,7 @@ list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI
 
 ## Requirements
 
-- Python 3.12+
+- Python 3.10+ (3.12+ recommended)
 - [poppler](https://poppler.freedesktop.org/) — provides `pdftotext`
   - **macOS** — `brew install poppler`
   - **Windows** — download the latest `Release-xx.yy.zz-0.zip` from
@@ -44,7 +44,7 @@ list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI
 ## Setup
 
 ```bash
-./setup.sh          # creates .venv, installs deps, sanity-checks tools
+./setup.sh          # creates .venv, installs the package (editable) + dev tools, sanity-checks
 cp .env.example .env
 $EDITOR .env        # paste your OpenAI API key
 source .env
@@ -57,7 +57,7 @@ PDF, strip numbering and parentheticals, and repair ligature glyphs that
 `pdftotext` mangles:
 
 ```bash
-.venv/bin/python preprocess.py --in-file YOUR_LIST.pdf --out-file words.txt
+.venv/bin/uil-preprocess --in-file YOUR_LIST.pdf --out-file words.txt
 ```
 
 **2. Generate speech.** Each word becomes `audio/<index>-<md5>.wav`
@@ -66,14 +66,14 @@ only fills gaps. The script self-throttles to stay under your model's RPM
 limit:
 
 ```bash
-.venv/bin/python text_to_speech.py --in-file words.txt --max-rpm 50
+.venv/bin/uil-text-to-speech --in-file words.txt --max-rpm 50
 ```
 
 **3. Drill.** Each word is spoken `--word-repeat` times with a rest between;
 `--range` restricts to a slice of the list (1-based, e.g. `10:50`):
 
 ```bash
-.venv/bin/python play.py --rest-time 5 --word-repeat 3 --range 10:50
+.venv/bin/uil-play --rest-time 5 --word-repeat 3 --range 10:50
 ```
 
 ## Bringing your own word list
@@ -106,10 +106,12 @@ for that year's link.
 
 | Path | Role |
 |---|---|
-| `preprocess.py` | PDF → cleaned word list (generator pipeline) |
-| `text_to_speech.py` | word list → per-word WAV clips via OpenAI TTS |
-| `play.py` | quiz-mode playback of the audio deck |
-| `setup.sh` | venv bootstrap and tooling checks |
+| `pyproject.toml` | package metadata; installs `uil-preprocess`, `uil-text-to-speech`, `uil-play` commands |
+| `src/uil_dict_skills/preprocess.py` | PDF → cleaned word list (generator pipeline) |
+| `src/uil_dict_skills/text_to_speech.py` | word list → per-word WAV clips via OpenAI TTS |
+| `src/uil_dict_skills/play.py` | quiz-mode playback of the audio deck |
+| `setup.sh` | venv bootstrap, editable package install, tooling checks |
+| `tests/` | pytest suite (runs offline — API and players are faked) |
 
 ## Playback
 
@@ -129,6 +131,15 @@ Older decks generated as FLAC still play on macOS via
 
 Your OpenAI key lives only in `.env` (gitignored); nothing else reads or logs
 it. Never commit `.env`. Rotate the key if it ever leaks.
+
+## Development
+
+```bash
+.venv/bin/pytest        # run the test suite
+```
+
+Tests are fully offline: the OpenAI client and all subprocess calls are
+faked, so the suite never touches the network or a player binary.
 
 ## License
 
