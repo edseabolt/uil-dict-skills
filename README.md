@@ -64,6 +64,24 @@ copyrighted compilation; download your own copy from
 it to `preprocess.py`. Any line-oriented word list works — one word per
 plain-text line is all `text_to_speech.py` requires.
 
+The current year's list PDF lives at a predictable URL — substitute the
+school years you want, e.g. `2025_26` for 2025–26:
+
+```
+https://www.uiltexas.org/files/academics/aplus/A+Spelling_2025_26.pdf
+```
+
+```bash
+curl -fL -o A+Spelling_2025_26.pdf \
+  'https://www.uiltexas.org/files/academics/aplus/A+Spelling_2025_26.pdf'
+```
+
+Older years follow the same pattern (`A+Spelling_2023_24.pdf`,
+`A+Spelling_2024_25.pdf`), though the exact filename has varied slightly
+between years — if a URL 404s, check the
+[UIL A+ Academics page](https://www.uiltexas.org/academics/dictionary-skills)
+for that year's link.
+
 ## Repository layout
 
 | Path | Role |
