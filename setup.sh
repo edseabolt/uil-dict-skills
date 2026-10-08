@@ -19,8 +19,13 @@ if [ ! -f .env ]; then
     echo "warning: .env missing — run: cp .env.example .env, then paste your OpenAI API key" >&2
 fi
 
-if [ ! -x fmedia/darwin/fmedia ] && [ ! -x fmedia/windows/fmedia.exe ]; then
-    echo 'warning: no fmedia player found under fmedia/ — playback will fail' >&2
-fi
+case "$(uname -s)" in
+    Darwin)
+        command -v afplay >/dev/null 2>&1 || echo 'warning: afplay not found — playback will fail' >&2
+        ;;
+    MINGW*|MSYS*|CYGWIN*)
+        [ -x fmedia/windows/fmedia.exe ] || echo 'warning: vendored player missing at fmedia/windows/fmedia.exe — playback will fail' >&2
+        ;;
+esac
 
 echo 'done. see README.md for the preprocess -> text_to_speech -> play workflow.'

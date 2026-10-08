@@ -47,15 +47,22 @@ def main() -> None:
         random.shuffle(audio_files)
 
     system = platform.system().lower()
-    exe_suffix = '.exe' if system == 'windows' else ''
-    fmedia_exe = os.path.join('fmedia', system, f'fmedia{exe_suffix}')
+    if system == 'darwin':
+        # afplay ships with macOS and decodes FLAC via CoreAudio
+        player_cmd = ['afplay']
+    elif system == 'windows':
+        # Windows has no built-in CLI player for FLAC; use the vendored fmedia
+        player_cmd = [os.path.join('fmedia', 'windows', 'fmedia.exe'), '--notui']
+    else:
+        logging.error(f'unsupported platform: {system}')
+        return
 
     while audio_files:
         audio_file = os.path.join('audio', audio_files.pop(0))
 
         for i in range(args.word_repeat):
             logging.info(f'playing {i + 1}: {audio_file}')
-            result = subprocess.run([fmedia_exe, '--notui', audio_file], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+            result = subprocess.run(player_cmd + [audio_file], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
             result.check_returncode()
             time.sleep(args.rest_time)
 

@@ -19,7 +19,7 @@ list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI
 - Python 3.12+
 - [poppler](https://poppler.freedesktop.org/) — provides `pdftotext`
 - An [OpenAI API key](https://platform.openai.com/api-keys) with TTS quota
-- macOS or Windows (bundled `fmedia` handles playback on both)
+- macOS (playback uses the built-in `afplay`) or Windows (bundled player included)
 
 ## Setup
 
@@ -73,17 +73,23 @@ plain-text line is all `text_to_speech.py` requires.
 | `text_to_speech.py` | word list → per-word FLAC clips via OpenAI TTS |
 | `play.py` | quiz-mode playback of the audio deck |
 | `setup.sh` | venv bootstrap and tooling checks |
-| `package.sh` | bundle `audio/`, `play.py`, and the player into `uil.zip` |
-| `fmedia/` | vendored [fmedia](https://github.com/stsaz/phiola) v1.19 players, BSD-2 |
+| `fmedia/windows/` | vendored [fmedia](https://github.com/stsaz/phiola) v1.19 player for Windows, BSD-2 |
 
-## About the bundled player
+## Playback
 
-`fmedia` upstream was renamed to `phiola`, and its original download channel
-is no longer reliable, so the macOS and Windows players at **v1.19** are
-vendored here under their BSD-2-Clause license (each platform directory
-keeps its `LICENSE`). Playback needs only the `fmedia/` directory next to
-`play.py`; if you already have `fmedia` or `phiola` on your `PATH`, edit the
-`fmedia_exe` line in `play.py` to point at it.
+`play.py` picks a player by platform:
+
+- **macOS** — the built-in `afplay`, which decodes FLAC through CoreAudio.
+  No binaries required.
+- **Windows** — the vendored `fmedia` v1.19 player under `fmedia/windows/`.
+  Windows ships no command-line FLAC player, so this one binary is bundled
+  under its BSD-2-Clause license (kept intact in that directory).
+
+`fmedia` upstream was renamed to
+[phiola](https://github.com/stsaz/phiola) and its original download channel
+is gone, which is why the Windows player is vendored rather than downloaded
+by a setup script. If you already have `fmedia` or `phiola` installed, edit
+the `player_cmd` lines in `play.py` to point at it.
 
 ## Security
 
@@ -92,5 +98,5 @@ it. Never commit `.env`. Rotate the key if it ever leaks.
 
 ## License
 
-MIT for the scripts in this repo (see `LICENSE`); vendored `fmedia` binaries
-remain under BSD-2-Clause with their own `LICENSE` files intact.
+MIT for the scripts in this repo (see `LICENSE`); the vendored Windows
+`fmedia` binary remains under BSD-2-Clause with its `LICENSE` intact.
