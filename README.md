@@ -4,14 +4,16 @@ Practice tool for the UIL A+ Spelling and Dictionary Skills tests: turns the
 official spelling-list PDF into per-word audio clips with an OpenAI
 text-to-speech voice, then drills them as randomized quiz playback.
 
-The [A+ Spelling contest](https://www.uiltexas.org/academics/spelling) is a
+The [A+ Spelling contest](https://www.uiltexas.org/aplus/events/aplus-spelling) is a
 written vocabulary and spelling competition for students in grades 3–8.
 Students listen to a pronouncer read words aloud at about five words per
 minute and write them down on paper. The related
-[Dictionary Skills test](https://www.uiltexas.org/academics/dictionary-skills)
-asks students to identify a spelled word, its definition, or both, from
-hearing it spoken. This repo automates converting the annual UIL
-"A+ Spelling" list into a listening-practice deck for either event.
+[Dictionary Skills test](https://www.uiltexas.org/aplus/events/aplus-dictionary-skills)
+asks students to answer 40 objective questions about dictionary use —
+word origins, parts of speech, variant spellings, alphabetizing — in 20
+minutes, using a dictionary during the contest. This repo automates
+converting the annual UIL "A+ Spelling" list into a listening-practice
+deck for the spelling event.
 
 ## Pipeline
 
@@ -82,7 +84,7 @@ limit:
 
 This repo contains **no word lists**. The annual UIL "A+ Spelling" list is a
 copyrighted compilation; download your own copy from
-[uiltexas.org](https://www.uiltexas.org/academics/dictionary-skills) and pass
+[uiltexas.org](https://www.uiltexas.org/aplus/events/aplus-dictionary-skills) and pass
 it to `preprocess.py`. Any line-oriented word list works — one word per
 plain-text line is all `text_to_speech.py` requires.
 
@@ -101,7 +103,7 @@ curl -fL -o A+Spelling_2025_26.pdf \
 Older years follow the same pattern (`A+Spelling_2023_24.pdf`,
 `A+Spelling_2024_25.pdf`), though the exact filename has varied slightly
 between years — if a URL 404s, check the
-[UIL A+ Academics page](https://www.uiltexas.org/academics/dictionary-skills)
+[A+ Spelling event page](https://www.uiltexas.org/aplus/events/aplus-spelling)
 for that year's link.
 
 ## Repository layout
