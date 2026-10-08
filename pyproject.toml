@@ -13,7 +13,14 @@ requires-python = ">=3.10"
 dependencies = ["openai==3.26.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = [
+    "autoflake>=2.3",
+    "black>=24",
+    "isort>=5.13",
+    "mypy>=1.10",
+    "pylint>=3.2",
+    "pytest>=8",
+]
 
 [project.scripts]
 uil-preprocess = "uil_dict_skills.preprocess:main"
@@ -26,3 +33,32 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.autoflake]
+in-place = true
+remove-all-unused-imports = true
+remove-unused-variables = true
+
+[tool.mypy]
+files = ["src"]
+python_version = "3.10"
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pylint.main]
+# run as: .venv/bin/pylint src
+# accepted deviations, applied repo-wide:
+# - logging-fstring-interpolation: f-strings in logging are this repo's
+#   established style; messages are plain diagnostics, not hot paths
+disable = ["logging-fstring-interpolation"]
