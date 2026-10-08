@@ -11,7 +11,7 @@ from hearing it spoken. This repo automates converting the annual UIL
 ## Pipeline
 
 ```
-list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI TTS──► audio/*.flac ──► play.py (quiz)
+list PDF ──pdftotext──► preprocess.py ──► words.txt ──OpenAI TTS──► audio/*.wav ──► play.py (quiz)
 ```
 
 ## Requirements
@@ -37,8 +37,6 @@ PDF, strip numbering and parentheticals, and repair ligature glyphs that
 `pdftotext` mangles:
 
 ```bash
-./preprocess.sh
-# or directly:
 .venv/bin/python preprocess.py --in-file YOUR_LIST.pdf --out-file words.txt
 ```
 
@@ -71,7 +69,7 @@ plain-text line is all `text_to_speech.py` requires.
 | Path | Role |
 |---|---|
 | `preprocess.py` | PDF → cleaned word list (generator pipeline) |
-| `text_to_speech.py` | word list → per-word FLAC clips via OpenAI TTS |
+| `text_to_speech.py` | word list → per-word WAV clips via OpenAI TTS |
 | `play.py` | quiz-mode playback of the audio deck |
 | `setup.sh` | venv bootstrap and tooling checks |
 
