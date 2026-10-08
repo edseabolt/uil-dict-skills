@@ -1,0 +1,16 @@
+LICENSE
+README.md
+pyproject.toml
+src/uil_dict_skills/__init__.py
+src/uil_dict_skills/play.py
+src/uil_dict_skills/preprocess.py
+src/uil_dict_skills/text_to_speech.py
+src/uil_dict_skills.egg-info/PKG-INFO
+src/uil_dict_skills.egg-info/SOURCES.txt
+src/uil_dict_skills.egg-info/dependency_links.txt
+src/uil_dict_skills.egg-info/entry_points.txt
+src/uil_dict_skills.egg-info/requires.txt
+src/uil_dict_skills.egg-info/top_level.txt
+tests/test_play.py
+tests/test_preprocess.py
+tests/test_text_to_speech.py

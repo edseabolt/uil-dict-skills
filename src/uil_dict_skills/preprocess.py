@@ -82,7 +82,7 @@ def remove_extra_word_pattern(iter: TextGenerator) -> TextGenerator:
         Lines with the annotation removed, e.g. "word".
     '''
     for item in iter:
-        tmp_item = re.sub(extra_word_pattern, '', item)
+        tmp_item = re.sub(extra_word_pattern, '', item).rstrip()
         if tmp_item == item:
             yield item
         else:

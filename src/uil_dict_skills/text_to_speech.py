@@ -63,6 +63,9 @@ def main() -> None:
     num_input_words = len(input_words)
     logging.info(f'num_input_words={num_input_words}')
 
+    # Fresh clones have no audio/ yet; create it before the first clip.
+    os.makedirs('audio', exist_ok=True)
+
     start_time = time.time()
     num_converted = 0
     num_total = 0
