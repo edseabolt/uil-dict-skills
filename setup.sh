@@ -23,8 +23,11 @@ case "$(uname -s)" in
     Darwin)
         command -v afplay >/dev/null 2>&1 || echo 'warning: afplay not found — playback will fail' >&2
         ;;
+    Linux)
+        command -v aplay >/dev/null 2>&1 || echo 'warning: aplay not found — playback will fail' >&2
+        ;;
     MINGW*|MSYS*|CYGWIN*)
-        [ -x fmedia/windows/fmedia.exe ] || echo 'warning: vendored player missing at fmedia/windows/fmedia.exe — playback will fail' >&2
+        command -v powershell >/dev/null 2>&1 || echo 'warning: powershell not found — playback will fail' >&2
         ;;
 esac
 

@@ -16,7 +16,7 @@ def main() -> None:
     parser.add_argument('--in-file', required=True, type=str, help='input file containing dictionary words to convert to spoken speech')
     parser.add_argument('--max-rpm', default=50, type=int, help='maximum requests per minute that the OpenAI API provides for the given model')
     parser.add_argument('--max-time-secs', default=60, type=int, help='maximum time limit')
-    parser.add_argument('--audio-format', default='flac', type=str, help='audio output format provided by OpenAI API')
+    parser.add_argument('--audio-format', default='wav', type=str, help='audio output format provided by OpenAI API (wav plays natively on macOS, Windows, and Linux)')
     parser.add_argument('--model', default='tts-1', type=str, help='OpenAI TTS model to use')
     parser.add_argument('--voice', default='shimmer', type=str, help='OpenAI TTS voice to use')
     args = parser.parse_args()

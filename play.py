@@ -18,7 +18,7 @@ def main() -> None:
     parser.add_argument('--random', default=True, action='store_true', help='randomly pick words')
     parser.add_argument('--no-random', dest='random', action='store_false', help='words played in sorted order')
     parser.add_argument('--range', type=str, help='select range of words to use - example 10:50')
-    parser.add_argument('--audio-format', default='flac', type=str, help='audio output format provided by OpenAI API')
+    parser.add_argument('--audio-format', default='wav', type=str, help='audio format of the clips in audio/ to play')
     args = parser.parse_args()
 
     if not os.path.isdir('audio'):
@@ -48,11 +48,18 @@ def main() -> None:
 
     system = platform.system().lower()
     if system == 'darwin':
-        # afplay ships with macOS and decodes FLAC via CoreAudio
-        player_cmd = ['afplay']
+        def play_cmd(path):
+            return ['afplay', path]  # built-in
     elif system == 'windows':
-        # Windows has no built-in CLI player for FLAC; use the vendored fmedia
-        player_cmd = [os.path.join('fmedia', 'windows', 'fmedia.exe'), '--notui']
+        def play_cmd(path):
+            # Media.SoundPlayer plays WAV; PlaySync blocks until the clip
+            # finishes, which paces the word-repeat/rest loop
+            escaped = path.replace("'", "''")
+            script = f"(New-Object Media.SoundPlayer '{escaped}').PlaySync()"
+            return ['powershell', '-NoProfile', '-Command', script]
+    elif system == 'linux':
+        def play_cmd(path):
+            return ['aplay', '-q', path]  # built-in (ALSA)
     else:
         logging.error(f'unsupported platform: {system}')
         return
@@ -62,7 +69,7 @@ def main() -> None:
 
         for i in range(args.word_repeat):
             logging.info(f'playing {i + 1}: {audio_file}')
-            result = subprocess.run(player_cmd + [audio_file], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+            result = subprocess.run(play_cmd(audio_file), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
             result.check_returncode()
             time.sleep(args.rest_time)
 
